@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: erad_ai
+    ports:
+      - "5432:5432"
+
+
+  kafka:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - "1G"
+      - --reserve-memory
+      - "0M"
+      - --node-id
+      - "0"
+      - --check=false
+    ports:
+      - "9092:9092"
+
+
+  api:
+    build: .
+    command: ["./erad-ai-api"]
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/erad_ai?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC: extraction_jobs
+      KAFKA_GROUP_ID: erad-ai-service
+      PORT: 8080
+
+  worker:
+    build: .
+    command: ["./erad-ai-worker"]
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/erad_ai?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC: extraction_jobs
+      KAFKA_GROUP_ID: erad-ai-service
+      WORKER_COUNT: 10
+      AZURE_API_KEY: ${AZURE_API_KEY}
+      AZURE_ENDPOINT: ${AZURE_ENDPOINT}
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}

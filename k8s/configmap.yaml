@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erad-ai-config
+data:
+  PORT: "8080"
+  WORKER_COUNT: "10"
+  KAFKA_TOPIC: "extraction_jobs"
+  KAFKA_GROUP_ID: "erad-ai-service"
+  KAFKA_BROKERS: "kafka:9092"
+  DATABASE_URL: "postgres://user:password@postgres:5432/erad_ai?sslmode=disable"
+  GCP_PROJECT_ID: "your-gcp-project-id"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: erad-ai-secrets
+type: Opaque
+stringData:
+  AZURE_API_KEY: "your-azure-api-key"
+  AZURE_ENDPOINT: "https://your-resource.cognitiveservices.azure.com/"

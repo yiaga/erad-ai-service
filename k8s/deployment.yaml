@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erad-ai-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: erad-ai-api
+  template:
+    metadata:
+      labels:
+        app: erad-ai-api
+    spec:
+      containers:
+      - name: api
+        image: erad-ai-service:latest
+        command: ["./erad-ai-api"]
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: erad-ai-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: erad-ai-api
+spec:
+  selector:
+    app: erad-ai-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erad-ai-worker
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: erad-ai-worker
+  template:
+    metadata:
+      labels:
+        app: erad-ai-worker
+    spec:
+      containers:
+      - name: worker
+        image: erad-ai-service:latest
+        command: ["./erad-ai-worker"]
+        envFrom:
+        - configMapRef:
+            name: erad-ai-config

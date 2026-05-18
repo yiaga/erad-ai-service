@@ -1,0 +1,5 @@
+*.env
+erad-ai-api
+erad-ai-worker
+gcp-key.json
+.env
